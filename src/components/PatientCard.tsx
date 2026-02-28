@@ -1,4 +1,7 @@
 import { Patient, DialysisSession } from "../types/patients";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createSession, completeSession } from "../api/client";
+import { useState } from "react";
 
 interface Props {
     patient: Patient;
@@ -6,6 +9,28 @@ interface Props {
 }
 
 export default function PatientCard({ patient, session }: Props) {
+    const [showCompleteModal, setShowCompleteModal] = useState(false);
+
+    const [formData, setFormData] = useState({
+        postWeight: "",
+        systolicBP: "",
+        diastolicBP: "",
+        notes: "",
+    });
+    const queryClient = useQueryClient();
+    const createMutation = useMutation({
+        mutationFn: createSession,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["sessions"] });
+        },
+    });
+    const completeMutation = useMutation({
+        mutationFn: ({ id, data }: any) =>
+            completeSession(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["sessions"] });
+        },
+    });
     const hasAnomaly =
         session?.anomalies &&
         Object.values(session.anomalies).some(Boolean);
@@ -83,6 +108,132 @@ export default function PatientCard({ patient, session }: Props) {
                     }}
                 >
                     ⚠ Clinical anomaly detected
+                </div>
+            )}
+
+            {!session && (
+                <button
+                    onClick={() =>
+                        createMutation.mutate({
+                            patientId: patient.id,
+                            startTime: new Date().toISOString(),
+                            preWeight: patient.dryWeight + 3,
+                            machineId: "M-101",
+                        })
+                    }
+                    style={{ marginTop: "0.5rem" }}
+                >
+                    Start Session
+                </button>
+            )}
+
+            {session?.status === "in_progress" && (
+                <button
+                    onClick={() => setShowCompleteModal(true)}
+                    style={{ marginTop: "0.5rem" }}
+                >
+                    Complete Session
+                </button>
+            )}
+            {showCompleteModal && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100vw",
+                        height: "100vh",
+                        backgroundColor: "rgba(0,0,0,0.4)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <div
+                        style={{
+                            backgroundColor: "white",
+                            padding: "1.5rem",
+                            borderRadius: "8px",
+                            width: "320px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.5rem",
+                        }}
+                    >
+                        <h3>Complete Session</h3>
+
+                        <input
+                            placeholder="Post Weight"
+                            type="number"
+                            value={formData.postWeight}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    postWeight: e.target.value,
+                                })
+                            }
+                        />
+
+                        <input
+                            placeholder="Systolic BP"
+                            type="number"
+                            value={formData.systolicBP}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    systolicBP: e.target.value,
+                                })
+                            }
+                        />
+
+                        <input
+                            placeholder="Diastolic BP"
+                            type="number"
+                            value={formData.diastolicBP}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    diastolicBP: e.target.value,
+                                })
+                            }
+                        />
+
+                        <textarea
+                            placeholder="Notes"
+                            value={formData.notes}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    notes: e.target.value,
+                                })
+                            }
+                        />
+
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <button onClick={() => setShowCompleteModal(false)}>
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    completeMutation.mutate({
+                                        id: session!.id,
+                                        data: {
+                                            postWeight: Number(formData.postWeight),
+                                            systolicBP: Number(formData.systolicBP),
+                                            diastolicBP: Number(formData.diastolicBP),
+                                            endTime: new Date().toISOString(),
+                                            notes: formData.notes,
+                                        },
+                                    });
+
+                                    setShowCompleteModal(false);
+                                }}
+                            >
+                                Submit
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

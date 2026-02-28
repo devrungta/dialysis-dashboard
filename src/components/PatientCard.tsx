@@ -10,6 +10,8 @@ interface Props {
 
 export default function PatientCard({ patient, session }: Props) {
     const [showCompleteModal, setShowCompleteModal] = useState(false);
+    const [showStartModal, setShowStartModal] = useState(false);
+    const [preWeightInput, setPreWeightInput] = useState("");
 
     const [formData, setFormData] = useState({
         postWeight: "",
@@ -112,17 +114,7 @@ export default function PatientCard({ patient, session }: Props) {
             )}
 
             {!session && (
-                <button
-                    onClick={() =>
-                        createMutation.mutate({
-                            patientId: patient.id,
-                            startTime: new Date().toISOString(),
-                            preWeight: patient.dryWeight + 3,
-                            machineId: "M-101",
-                        })
-                    }
-                    style={{ marginTop: "0.5rem" }}
-                >
+                <button onClick={() => setShowStartModal(true)}>
                     Start Session
                 </button>
             )}
@@ -228,6 +220,64 @@ export default function PatientCard({ patient, session }: Props) {
                                     });
 
                                     setShowCompleteModal(false);
+                                }}
+                            >
+                                Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {showStartModal && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100vw",
+                        height: "100vh",
+                        backgroundColor: "rgba(0,0,0,0.4)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <div
+                        style={{
+                            backgroundColor: "white",
+                            padding: "1.5rem",
+                            borderRadius: "8px",
+                            width: "320px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.5rem",
+                        }}
+                    >
+                        <h3>Start Session</h3>
+
+                        <input
+                            type="number"
+                            placeholder="Pre-Dialysis Weight"
+                            value={preWeightInput}
+                            onChange={(e) => setPreWeightInput(e.target.value)}
+                        />
+
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <button onClick={() => setShowStartModal(false)}>
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    createMutation.mutate({
+                                        patientId: patient.id,
+                                        startTime: new Date().toISOString(),
+                                        preWeight: Number(preWeightInput),
+                                        machineId: "M-101",
+                                    });
+
+                                    setPreWeightInput("");
+                                    setShowStartModal(false);
                                 }}
                             >
                                 Submit

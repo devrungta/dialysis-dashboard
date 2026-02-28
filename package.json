@@ -22,7 +22,7 @@
     "start": "react-scripts start",
     "backend": "ts-node-dev --respawn server/index.ts",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "jest",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

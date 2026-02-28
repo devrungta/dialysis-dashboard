@@ -10,6 +10,11 @@ export interface DialysisSession {
     machineId: string;
     notes?: string;
     status: "not_started" | "in_progress" | "completed";
+    anomalies?: {
+        excessWeightGain: boolean;
+        highPostBP: boolean;
+        abnormalDuration: boolean;
+    };
 }
 
 export const sessions: DialysisSession[] = [];

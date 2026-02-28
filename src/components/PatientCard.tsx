@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { Patient, DialysisSession } from "../types/patients";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createSession, completeSession } from "../api/client";

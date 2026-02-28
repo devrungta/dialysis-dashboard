@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { sessions, DialysisSession } from "../data/sessions";
-import { v4 as uuidv4 } from "uuid";
 import { patients } from "../data/patients";
 import { detectAnomalies } from "../services/anomaly.service";
 
@@ -34,7 +33,7 @@ export const createSession = (req: Request, res: Response) => {
     }
 
     const newSession: DialysisSession = {
-        id: uuidv4(),
+        id: Math.random().toString(36).substring(2, 9),
         patientId,
         startTime,
         preWeight,

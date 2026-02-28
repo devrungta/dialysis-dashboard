@@ -1,6 +1,5 @@
 import { patients, Patient } from "../data/patients";
 import { sessions, DialysisSession } from "../data/sessions";
-import { v4 as uuidv4 } from "uuid";
 import { detectAnomalies } from "../services/anomaly.service";
 
 const UNIT_ID = "A1";
@@ -53,7 +52,7 @@ export function seedData() {
         startTime.setHours(startTime.getHours() - 4);
 
         const session: DialysisSession = {
-            id: uuidv4(),
+            id: Math.random().toString(36).substring(2, 9),
             patientId: patient.id,
             startTime: startTime.toISOString(),
             preWeight: dryWeight + randomBetween(1, 4),

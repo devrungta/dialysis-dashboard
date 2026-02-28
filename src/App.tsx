@@ -1,10 +1,11 @@
 import React from "react";
 import Dashboard from "./pages/Dashboard";
+import "./styles/global.css";
 
 function App() {
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Dialysis Dashboard</h1>
+    <div className="app-container">
+      <h1 className="page-title">Dialysis Dashboard</h1>
       <Dashboard />
     </div>
   );

@@ -3,6 +3,7 @@ import { fetchPatients, fetchSessions } from "../api/client";
 import { Patient, DialysisSession } from "../types/patients";
 import { useState } from "react";
 import PatientCard from "../components/PatientCard";
+import "../styles/dashboard.css";
 
 const UNIT_ID = "A1";
 
@@ -60,23 +61,26 @@ export default function Dashboard() {
         : patientRows;
 
     return (
-        <div>
-            <h2>Today's Patients</h2>
+        <div className="app-container">
+            <div className="dashboard-layout">
+            <div className="dashboard-header">
+            <h2 className="page-title">Today's Patients</h2>
 
-            <label>
+            <label className="filter-toggle">
                 <input
                     type="checkbox"
                     checked={onlyAnomalies}
                     onChange={() => setOnlyAnomalies(!onlyAnomalies)}
                 />
                 Show only anomalies
-            </label>
+                    </label>
+                </div>
 
             {filteredRows.length === 0 && (
                 <p>No matching patients.</p>
             )}
 
-            <ul style={{ listStyle: "none", padding: 0 }}>
+            <ul className="patient-list">
                 {filteredRows.map(({ patient, session }) => (
                     <li key={patient.id}>
                         <PatientCard
@@ -85,7 +89,7 @@ export default function Dashboard() {
                         />
                     </li>
                 ))}
-            </ul>
+            </ul></div>
         </div>
     );
 }

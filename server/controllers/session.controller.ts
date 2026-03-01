@@ -47,7 +47,7 @@ export const createSession = (req: Request, res: Response) => {
 };
 export const completeSession = (req: Request, res: Response) => {
     const { id } = req.params;
-    const { postWeight, systolicBP, diastolicBP, endTime, notes } = req.body;
+    const updates = req.body;
 
     const session = sessions.find((s) => s.id === id);
 
@@ -55,17 +55,25 @@ export const completeSession = (req: Request, res: Response) => {
         return res.status(404).json({ message: "Session not found" });
     }
 
-    session.postWeight = postWeight;
-    session.systolicBP = systolicBP;
-    session.diastolicBP = diastolicBP;
-    session.endTime = endTime;
-    session.notes = notes;
-    session.status = "completed";
+    Object.assign(session, updates);
+    if (updates.endTime) {
+        session.status = "completed";
+    }
 
-    const patient = patients.find((p) => p.id === session.patientId);
+    if (
+        updates.postWeight !== undefined ||
+        updates.systolicBP !== undefined ||
+        updates.diastolicBP !== undefined ||
+        updates.endTime !== undefined
+    ) {
+        const patient = patients.find((p) => p.id === session.patientId);
 
-    if (patient) {
-        session.anomalies = detectAnomalies(session, patient.dryWeight);
+        if (patient) {
+            session.anomalies = detectAnomalies(
+                session,
+                patient.dryWeight
+            );
+        }
     }
 
     res.json(session);

@@ -17,6 +17,8 @@ export default function PatientCard({ patient, session }: Props) {
     const [showCompleteModal, setShowCompleteModal] = useState(false);
     const [showStartModal, setShowStartModal] = useState(false);
     const [preWeightInput, setPreWeightInput] = useState("");
+    const [showEditNotesModal, setShowEditNotesModal] = useState(false);
+    const [editedNotes, setEditedNotes] = useState("");
 
     const [formData, setFormData] = useState({
         postWeight: "",
@@ -43,6 +45,28 @@ export default function PatientCard({ patient, session }: Props) {
             completeSession(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["sessions"] });
+        },
+    });
+    const editNotesMutation = useMutation({
+        mutationFn: async () => {
+            const res = await fetch(
+                `http://localhost:5000/api/sessions/${session!.id}`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        notes: editedNotes,
+                    }),
+                }
+            );
+
+            if (!res.ok) throw new Error("Failed");
+
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["sessions"] });
+            setShowEditNotesModal(false);
         },
     });
     const hasAnomaly =
@@ -77,7 +101,23 @@ export default function PatientCard({ patient, session }: Props) {
                     )}
                 </>
             )}
-            
+            {session?.status === "completed" && session.notes && (
+                <div className="patient-notes">
+                    <strong>Notes:</strong> {session.notes}
+                </div>
+            )}
+            {session?.status === "completed" && (
+                <button
+                    className="action-button"
+                    style={{ marginTop: "0.5rem" }}
+                    onClick={() => {
+                        setEditedNotes(session.notes || "");
+                        setShowEditNotesModal(true);
+                    }}
+                >
+                    Edit Notes
+                </button>
+            )}
 
             {showStartModal && (
                 <div className="modal-overlay">
@@ -234,6 +274,43 @@ export default function PatientCard({ patient, session }: Props) {
                 </button>
             )}
         </div>
+        {showEditNotesModal && (
+            <div
+                className="modal-overlay"
+                onClick={() => setShowEditNotesModal(false)}
+            >
+                <div
+                    className="modal-card"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <h3>Edit Session Notes</h3>
+
+                    <textarea
+                        className="modal-input"
+                        rows={4}
+                        value={editedNotes}
+                        onChange={(e) => setEditedNotes(e.target.value)}
+                    />
+
+                    <div className="modal-actions">
+                        <button
+                            className="modal-button secondary"
+                            onClick={() => setShowEditNotesModal(false)}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            className="modal-button primary"
+                            disabled={editNotesMutation.isPending}
+                            onClick={() => editNotesMutation.mutate()}
+                        >
+                            {editNotesMutation.isPending ? "Saving..." : "Save"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
     </>
     );
 }

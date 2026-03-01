@@ -50,3 +50,19 @@ export async function completeSession(
     if (!res.ok) throw new Error("Failed to complete session");
     return res.json();
 }
+
+export async function createPatient(data: {
+    patientId: string;
+    startTime: string;
+    preWeight: number;
+    machineId: string;
+}) {
+    const res = await fetch(`http://localhost:5000/api/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+
+    if (!res.ok) throw new Error("Failed to create session");
+    return res.json();
+}

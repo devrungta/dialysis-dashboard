@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchPatients, fetchSessions } from "../api/client";
 import { Patient, DialysisSession } from "../types/patients";
 import { useState } from "react";
@@ -26,6 +26,37 @@ export default function Dashboard() {
     } = useQuery<DialysisSession[]>({
         queryKey: ["sessions", UNIT_ID],
         queryFn: () => fetchSessions(UNIT_ID),
+    });
+    
+    const [showAddModal, setShowAddModal] = useState(false);
+    const queryClient = useQueryClient();
+    const [form, setForm] = useState({
+        name: "",
+        age: "",
+        dryWeight: "",
+    });
+    const addPatientMutation = useMutation({
+        mutationFn: async () => {
+            const res = await fetch("http://localhost:5000/api/patients", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: form.name,
+                    age: Number(form.age),
+                    dryWeight: Number(form.dryWeight),
+                    unitId: "A1",
+                }),
+            });
+
+            if (!res.ok) throw new Error("Failed");
+
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["patients"] });
+            setShowAddModal(false);
+            setForm({ name: "", age: "", dryWeight: "" });
+        },
     });
 
     if (loadingPatients || loadingSessions) {
@@ -60,11 +91,17 @@ export default function Dashboard() {
         ? patientRows.filter((row) => row.hasAnomaly)
         : patientRows;
 
-    return (
+    return (<>
         <div className="app-container">
             <div className="dashboard-layout">
             <div className="dashboard-header">
             <h2 className="page-title">Today's Patients</h2>
+            <button
+                className="action-button"
+                onClick={() => setShowAddModal(true)}
+            >
+                + Add Patient
+            </button>
 
             <label className="filter-toggle">
                 <input
@@ -91,5 +128,73 @@ export default function Dashboard() {
                 ))}
             </ul></div>
         </div>
+        {showAddModal && (
+            <div
+                className="modal-overlay"
+                onClick={() => setShowAddModal(false)}
+            >
+                <div
+                    className="modal-card"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <h3>Add Patient (Today)</h3>
+
+                    <input
+                        className="modal-input"
+                        placeholder="Name"
+                        value={form.name}
+                        onChange={(e) =>
+                            setForm({ ...form, name: e.target.value })
+                        }
+                    />
+
+                    <input
+                        className="modal-input"
+                        placeholder="Age"
+                        type="number"
+                        value={form.age}
+                        onChange={(e) =>
+                            setForm({ ...form, age: e.target.value })
+                        }
+                    />
+
+                    <input
+                        className="modal-input"
+                        placeholder="Dry Weight (kg)"
+                        type="number"
+                        value={form.dryWeight}
+                        onChange={(e) =>
+                            setForm({ ...form, dryWeight: e.target.value })
+                        }
+                    />
+
+                    <div className="modal-actions">
+                        <button
+                            className="modal-button secondary"
+                            onClick={() => setShowAddModal(false)}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            className="modal-button primary"
+                            disabled={
+                                !form.name ||
+                                !form.age ||
+                                !form.dryWeight ||
+                                addPatientMutation.isPending
+                            }
+                            onClick={() => addPatientMutation.mutate()}
+                        >
+                            {addPatientMutation.isPending
+                                ? "Adding..."
+                                : "Add Patient"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+        
+    </>
     );
 }

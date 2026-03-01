@@ -24,10 +24,6 @@ export default function PatientCard({ patient, session }: Props) {
         diastolicBP: "",
         notes: "",
     });
-    const closeAllModals = () => {
-        setShowStartModal(false);
-        setShowCompleteModal(false);
-    };
     useEffect(() => {
         if (showStartModal || showCompleteModal) {
             document.body.classList.add("modal-open");

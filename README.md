@@ -224,3 +224,25 @@ Component Test
 - PatientCard
 
 - Verifies anomaly banner renders conditionally
+
+## AI Accomplice
+
+### Majority help
+
+Majority of the help was taken in describing the visual stricture of the webpage as no mockups were provided and no experience in handling or viewing nurse dashboards.
+
+Besides it, some help was garnished during debugging and defining the data structures for quality improvement and some help with the overall workflow describing for such a project, what should be done first and what not.
+
+Also the description of a good Readme and what it should include and what not were taken from ChatGPT.
+
+### Major Disagreement
+
+During this project, there was an assumption taken by Claude that adding a patient and starting a dialysis session could be combined into a single action.
+I initially followed that idea and implemented a composite endpoint that created a patient and started a session simultaneously. However, after thinking through the domain model more carefully, I realized that patient registration and session initiation are distinct domain events.
+
+In real clinical workflows, patients may be registered in advance, scheduled for the day, and only later begin treatment. Coupling those two operations tightly could introduce partial state issues and reduce flexibility.
+
+So I refactored the design to:
+- Keep patient creation independent
+- Automatically schedule them for today
+- Allow sessions to be started separately via the dashboard.
